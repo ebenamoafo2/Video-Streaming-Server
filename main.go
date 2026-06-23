@@ -51,7 +51,12 @@ func streamHandler(w http.ResponseWriter, r *http.Request) {
 	videoName := r.URL.Path[len("/videos/"):]
 	videoPath := filepath.Join("static", "videos", videoName)
 
-	file, _ := os.Open(videoPath)
+	file, err := os.Open(videoPath)
+	if err != nil {
+        http.Error(w, "video not found", http.StatusNotFound)
+        return
+    }
+	defer file.Close()
 
 	modTime := time.Now()
 	http.ServeContent(w, r, videoName, modTime, file)
