@@ -53,8 +53,11 @@ func streamHandler(w http.ResponseWriter, r *http.Request) {
 
 	file, err := os.Open(videoPath)
 	if err != nil {
-        http.Error(w, "video not found", http.StatusNotFound)
-        return
+        if os.IsExist(err) {
+			http.Error(w, "Video not found", http.StatusNotFound)
+		} else {
+			http.Error(w, "failed to open video", http.StatusInternalServerError)
+		}
     }
 	defer file.Close()
 
