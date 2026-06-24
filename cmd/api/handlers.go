@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-func storeUploadedFile(w http.ResponseWriter, r *http.Request) {
+func (app *application) StoreUploadedFile(w http.ResponseWriter, r *http.Request) {
 	// Limit the size of the request body to prevent large uploads
 	r.Body = http.MaxBytesReader(w, r.Body, 10<<20) 
 
@@ -47,7 +47,7 @@ func storeUploadedFile(w http.ResponseWriter, r *http.Request) {
 }
 
 
-func streamHandler(w http.ResponseWriter, r *http.Request) {
+func (app *application) StreamHandler(w http.ResponseWriter, r *http.Request) {
 	videoName := r.URL.Path[len("/videos/"):]
 	videoPath := filepath.Join("static", "videos", videoName)
 
@@ -65,16 +65,6 @@ func streamHandler(w http.ResponseWriter, r *http.Request) {
 	http.ServeContent(w, r, videoName, modTime, file)
 }
 
-func helloHandler(w http.ResponseWriter, r *http.Request) {
+func (app *application) HelloHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "Hello world")
-}
-
-func main() {
-	http.HandleFunc("/hello", helloHandler)
-	http.HandleFunc("/videos/", streamHandler)
-	http.HandleFunc("/upload", storeUploadedFile)
-	fmt.Println("Starting server on port 8080")
-	if err := http.ListenAndServe(":8080", nil); err != nil {
-		panic(err)
-	}
 }

@@ -1,0 +1,51 @@
+package main
+
+import (
+	"flag"
+	"fmt"
+	"log/slog"
+	"net/http"
+	"os"
+	"time"
+)
+
+
+type config struct {
+	Port int
+	env  string
+}
+
+type application struct {
+	config config
+	logger *slog.Logger
+}
+
+func main() {
+
+	var cfg config
+
+	flag.IntVar(&cfg.Port, "port", 8080, "API server port")
+	flag.StringVar(&cfg.env, "env", "development", "Environment (development|staging|production)")
+	flag.Parse()
+
+	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+
+	app := &application{
+		config: cfg,
+		logger: logger,
+	}
+
+	server := &http.Server{
+		Addr:    fmt.Sprintf(":%d", cfg.Port),
+		Handler: app.routes(),
+		IdleTimeout:  time.Minute,
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 30 * time.Second,
+		ErrorLog: slog.NewLogLogger(logger.Handler(), slog.LevelError),
+	}
+	logger.Info("starting server", "addr", server.Addr, "env", cfg.env)
+
+	err := server.ListenAndServe()
+	logger.Error(err.Error())
+	os.Exit(1)
+}
